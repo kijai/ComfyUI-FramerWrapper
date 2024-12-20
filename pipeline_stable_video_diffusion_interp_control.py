@@ -547,7 +547,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         image_latents = image_latents.unsqueeze(1)  # (1, 1, 4, h, w)
         bsz, num_frames, _, latent_h, latent_w = latents.shape
         bsz_cfg = bsz * 2
-        mask_token = self.unet.mask_token
+        mask_token = self.unet.mask_token.to(device)
         conditional_latents_mask = mask_token.repeat(bsz_cfg, num_frames-2, 1, latent_h, latent_w)
         image_end_latents = image_end_latents.unsqueeze(1)
         image_latents = torch.cat([image_latents, conditional_latents_mask, image_end_latents], dim=1)
