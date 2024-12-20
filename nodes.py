@@ -330,6 +330,9 @@ class FramerSift:
         pred_tracks = {
             "pred_tracks": pred_tracks,
             "anchor_points_flag": anchor_points_flag,
+            "num_frames": num_frames,
+            "width": W,
+            "height": H,
         }
 
 
@@ -379,9 +382,48 @@ class CoordsToFramerTracking:
         pred_tracks = {
             "pred_tracks": coords_tensor,
             "anchor_points_flag": None,
+            "num_frames": num_frames,
+            "width": width,
+            "height": height,
         }
 
         return (pred_tracks, vis_frames_out,)
+    
+class FramerTrackingConcat:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                    "tracks_1": ("PREDTRACKS", ),
+                    "tracks_2": ("PREDTRACKS", ),
+                    },
+            }
+
+    RETURN_TYPES = ("PREDTRACKS", "IMAGE",)
+    RETURN_NAMES = ("pred_tracks", "vis_frames")
+    FUNCTION = "convert"
+    CATEGORY = "FramerWrapper"
+
+    def convert(self, tracks_1, tracks_2):
+
+        first_track = tracks_1["pred_tracks"]
+        second_track = tracks_2["pred_tracks"]
+        num_frames = first_track.shape[0]
+        print(first_track.shape, second_track.shape)
+        new_tracks = torch.cat((first_track, second_track), dim=1)
+       
+
+        vis_frames = get_vis_image(target_size=(tracks_1["width"], tracks_1["height"]), points=new_tracks.permute(1, 0, 2), num_frames=num_frames, side=20)
+        
+        vis_tensors = []
+        for img in vis_frames:
+            img = torch.from_numpy(img).permute(2, 0, 1).contiguous()
+            vis_tensors.append(img) 
+        vis_frames_out = torch.stack(vis_tensors)
+        vis_frames_out = vis_frames_out.permute(0, 2, 3, 1).cpu().float()
+
+        tracks_1["pred_tracks"] = new_tracks
+
+        return (tracks_1, vis_frames_out,)
 
 NODE_CLASS_MAPPINGS = {
     "FramerModelLoader": FramerModelLoader,
@@ -389,6 +431,7 @@ NODE_CLASS_MAPPINGS = {
     "FramerTorchCompileSettings": FramerTorchCompileSettings,
     "FramerSift": FramerSift,
     "CoordsToFramerTracking": CoordsToFramerTracking,
+    "FramerTrackingConcat": FramerTrackingConcat,
     
     }
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -397,4 +440,5 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FramerTorchCompileSettings": "Framer Torch Compile Settings",
     "FramerSift": "Framer Sift",
     "CoordsToFramerTracking": "Coords To Framer Tracking",
+    "FramerTrackingConcat": "Framer Tracking Concat",
     }
