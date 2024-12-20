@@ -211,6 +211,10 @@ class FramerSampler:
 
         anchor_points_flag = tracks.get("anchor_points_flag") if tracks is not None else None
         
+        if tracks == None:
+            model.controlnet.to(offload_device)
+        else:
+            model.controlnet.to(device)
 
         mm.soft_empty_cache()
         gc.collect()
@@ -341,28 +345,30 @@ class CoordsToFramerTracking:
     def INPUT_TYPES(s):
         return {"required": {
                     "coordinates": ("STRING", {"forceInput": True}),
-                    "coordinates_2": ("STRING", {"forceInput": True}),
                     "width": ("INT", {"default": 512, "min": 128, "max": 2048, "step": 8}),
                     "height": ("INT", {"default": 512, "min": 128, "max": 2048, "step": 8}),
                     },
-                }
+            }
 
     RETURN_TYPES = ("PREDTRACKS", "IMAGE",)
     RETURN_NAMES = ("pred_tracks", "vis_frames")
     FUNCTION = "convert"
     CATEGORY = "FramerWrapper"
 
-    def convert(self, coordinates, coordinates_2, width, height):
+    def convert(self, coordinates, width, height):
         coords_list = []
-        coords = json.loads(coordinates.replace("'", '"'))
-        coords = [(coord['x'], coord['y']) for coord in coords]
-        num_frames = len(coords)
-
-        coords_2 = json.loads(coordinates_2.replace("'", '"'))
-        coords_2 = [(coord['x'], coord['y']) for coord in coords_2]
-
-        coords_list.append(coords)
-        coords_list.append(coords_2)
+        print(len(coordinates[0]))
+        if len(coordinates[0]) > 1:
+            for coords in coordinates:
+                coords = json.loads(coords.replace("'", '"'))
+                num_frames = len(coords)
+                coords = [(coord['x'], coord['y']) for coord in coords]
+                coords_list.append(coords)
+        else:
+            coords = json.loads(coordinates.replace("'", '"'))
+            coords = [(coord['x'], coord['y']) for coord in coords]
+            num_frames = len(coords)
+            coords_list.append(coords)
 
         coords_tensor = torch.tensor(coords_list, dtype=torch.float32)
         coords_tensor= coords_tensor.permute(1, 0, 2)  # (num_frames, num_points, 2)
