@@ -224,8 +224,6 @@ class FramerSampler:
         except:
             pass
 
-        #for name, param in transformer.named_parameters():
-        #    print(name, param.data.device)
         unet.to(device)
         video_frames = model(
             start_image,
@@ -264,7 +262,6 @@ class FramerSampler:
             unet.to(offload_device)
             mm.soft_empty_cache()
             gc.collect()
-        print(video_frames.shape)
         out = video_frames.permute(0, 2, 3, 1).cpu().float()
 
         return out,
@@ -295,8 +292,6 @@ class FramerSift:
         device = mm.get_torch_device()
         from .models_diffusers.sift_match import interpolate_trajectory as sift_interpolate_trajectory
         from .models_diffusers.sift_match import sift_match
-        import cv2
-        import numpy as np
         
         B, H, W, C = start_image.shape
 
@@ -357,7 +352,6 @@ class CoordsToFramerTracking:
 
     def convert(self, coordinates, width, height):
         coords_list = []
-        print(len(coordinates[0]))
         if len(coordinates[0]) > 1:
             for coords in coordinates:
                 coords = json.loads(coords.replace("'", '"'))

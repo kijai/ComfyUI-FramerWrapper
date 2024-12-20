@@ -751,7 +751,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         else:
             frames = latents
 
-        self.maybe_free_model_hooks()
+        #self.maybe_free_model_hooks()
 
         if not return_dict:
             return frames
