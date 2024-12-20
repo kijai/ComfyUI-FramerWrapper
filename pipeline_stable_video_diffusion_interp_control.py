@@ -112,6 +112,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         feature_extractor: CLIPImageProcessor,
         controlnet: Optional[ControlNetSVDModel] = None,
         pose_encoder: Optional[torch.nn.Module] = None,
+        offload_device: torch.device = torch.device("cpu"),
     ):
         super().__init__()
 
@@ -126,6 +127,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         )
         self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
+        self.offload_device = offload_device
 
     def _encode_image(self, image, device, num_videos_per_prompt, do_classifier_free_guidance):
         dtype = next(self.image_encoder.parameters()).dtype
@@ -177,7 +179,9 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         do_classifier_free_guidance,
     ):
         image = image.to(device=device)
+        self.vae.to(device=device)
         image_latents = self.vae.encode(image).latent_dist.mode()
+        self.vae.to(self.offload_device)
 
         if do_classifier_free_guidance:
             negative_image_latents = torch.zeros_like(image_latents)
@@ -451,8 +455,10 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         do_classifier_free_guidance = max_guidance_scale > 1.0
 
         # 3. Encode input image
+        self.image_encoder.to(device)
         image_embeddings = self._encode_image(image, device, num_videos_per_prompt, do_classifier_free_guidance)
         image_end_embeddings = self._encode_image(image_end, device, num_videos_per_prompt, do_classifier_free_guidance)
+        self.image_encoder.to(self.offload_device)
 
         # NOTE: Stable Diffusion Video was conditioned on fps - 1, which
         # is why it is reduced here.
@@ -738,7 +744,9 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
                 self.vae.to(dtype=torch.float16)
                 # self.vae.to(dtype=torch.float32)
                 # latents = latents.to(torch.float32)
+            self.vae.to(device)
             frames = self.decode_latents(latents, num_frames, decode_chunk_size)
+            self.vae.to(self.offload_device)
             frames = tensor2vid(frames, self.image_processor, output_type=output_type)
         else:
             frames = latents

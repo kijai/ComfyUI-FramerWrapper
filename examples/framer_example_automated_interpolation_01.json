@@ -1,0 +1,1079 @@
+{
+  "last_node_id": 44,
+  "last_link_id": 77,
+  "nodes": [
+    {
+      "id": 3,
+      "type": "FramerModelLoader",
+      "pos": [
+        187.70361328125,
+        161.97300720214844
+      ],
+      "size": [
+        441.4049377441406,
+        154
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "compile_args",
+          "type": "COMPILEARGS",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "FRAMERMODEL",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FramerModelLoader"
+      },
+      "widgets_values": [
+        "Framer\\Framer_unet_fp16.safetensors",
+        "Framer\\Framer_controlnet_fp16.safetensors",
+        "fp16",
+        "main_device",
+        "sdpa"
+      ]
+    },
+    {
+      "id": 37,
+      "type": "ImageToMask",
+      "pos": [
+        1240.9432373046875,
+        1113.6790771484375
+      ],
+      "size": [
+        315,
+        58
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 68
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [
+            69
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageToMask"
+      },
+      "widgets_values": [
+        "red"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "FramerTorchCompileSettings",
+      "pos": [
+        -280.3356628417969,
+        156.63075256347656
+      ],
+      "size": [
+        365.4000244140625,
+        202
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "torch_compile_args",
+          "type": "COMPILEARGS",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FramerTorchCompileSettings"
+      },
+      "widgets_values": [
+        "inductor",
+        false,
+        "default",
+        false,
+        64,
+        true,
+        false
+      ]
+    },
+    {
+      "id": 24,
+      "type": "PreviewImage",
+      "pos": [
+        620.6464233398438,
+        639.7191162109375
+      ],
+      "size": [
+        508.58154296875,
+        636.3059692382812
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 45
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 16,
+      "type": "ImageResizeKJ",
+      "pos": [
+        199.82534790039062,
+        441.1523132324219
+      ],
+      "size": [
+        315,
+        266
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 34
+        },
+        {
+          "name": "get_image_size",
+          "type": "IMAGE",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "width_input"
+          },
+          "shape": 7
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "height_input"
+          },
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            35,
+            38,
+            41
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageResizeKJ"
+      },
+      "widgets_values": [
+        512,
+        320,
+        "lanczos",
+        false,
+        8,
+        0,
+        0,
+        "disabled"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "LoadImage",
+      "pos": [
+        -290.021240234375,
+        874.4773559570312
+      ],
+      "size": [
+        380.94720458984375,
+        329.8909606933594
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            36
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "title": "Load Image: End",
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "pasted/image (500).png",
+        "image"
+      ]
+    },
+    {
+      "id": 38,
+      "type": "Note",
+      "pos": [
+        -284.2713317871094,
+        45.639503479003906
+      ],
+      "size": [
+        272.8872375488281,
+        67.62199401855469
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "Requires Triton, slight speed increase, compile time is relatively long"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 35,
+      "type": "ImageCompositeMasked",
+      "pos": [
+        1243.2684326171875,
+        898.4698486328125
+      ],
+      "size": [
+        315,
+        146
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "destination",
+          "type": "IMAGE",
+          "link": 73
+        },
+        {
+          "name": "source",
+          "type": "IMAGE",
+          "link": 70
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": 69,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            75
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageCompositeMasked"
+      },
+      "widgets_values": [
+        0,
+        0,
+        false
+      ]
+    },
+    {
+      "id": 41,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        1621.109375,
+        849.1002807617188
+      ],
+      "size": [
+        528.0629272460938,
+        641.539306640625
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 75
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "meta_batch",
+          "type": "VHS_BatchManager",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 8,
+        "loop_count": 0,
+        "filename_prefix": "Framer",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "pingpong": false,
+        "save_output": false,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "Framer_00061.mp4",
+            "subfolder": "",
+            "type": "temp",
+            "format": "video/h264-mp4",
+            "frame_rate": 8
+          },
+          "muted": false
+        }
+      }
+    },
+    {
+      "id": 21,
+      "type": "FramerSift",
+      "pos": [
+        204.88775634765625,
+        871.8040771484375
+      ],
+      "size": [
+        315,
+        170
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "start_image",
+          "type": "IMAGE",
+          "link": 41
+        },
+        {
+          "name": "end_image",
+          "type": "IMAGE",
+          "link": 42
+        },
+        {
+          "name": "num_frames",
+          "type": "INT",
+          "link": 77,
+          "widget": {
+            "name": "num_frames"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "pred_tracks",
+          "type": "PREDTRACKS",
+          "links": [
+            72
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "visualization",
+          "type": "IMAGE",
+          "links": [
+            45
+          ],
+          "slot_index": 1
+        },
+        {
+          "name": "vis_frames",
+          "type": "IMAGE",
+          "links": [
+            68,
+            70
+          ],
+          "slot_index": 2
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FramerSift"
+      },
+      "widgets_values": [
+        14,
+        0.5,
+        5,
+        "random"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "ImageResizeKJ",
+      "pos": [
+        219.55934143066406,
+        796.0653076171875
+      ],
+      "size": [
+        315,
+        266
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 36
+        },
+        {
+          "name": "get_image_size",
+          "type": "IMAGE",
+          "link": 38,
+          "shape": 7
+        },
+        {
+          "name": "width_input",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "width_input"
+          },
+          "shape": 7
+        },
+        {
+          "name": "height_input",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "height_input"
+          },
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            37,
+            42
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageResizeKJ"
+      },
+      "widgets_values": [
+        512,
+        512,
+        "lanczos",
+        false,
+        8,
+        0,
+        0,
+        "disabled"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "VHS_VideoCombine",
+      "pos": [
+        1615.548583984375,
+        148.67410278320312
+      ],
+      "size": [
+        528.0629272460938,
+        641.539306640625
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 74
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "meta_batch",
+          "type": "VHS_BatchManager",
+          "link": null,
+          "shape": 7
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": null,
+          "shape": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "Filenames",
+          "type": "VHS_FILENAMES",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VHS_VideoCombine"
+      },
+      "widgets_values": {
+        "frame_rate": 8,
+        "loop_count": 0,
+        "filename_prefix": "Framer",
+        "format": "video/h264-mp4",
+        "pix_fmt": "yuv420p",
+        "crf": 19,
+        "save_metadata": true,
+        "pingpong": false,
+        "save_output": false,
+        "videopreview": {
+          "hidden": false,
+          "paused": false,
+          "params": {
+            "filename": "Framer_00060.mp4",
+            "subfolder": "",
+            "type": "temp",
+            "format": "video/h264-mp4",
+            "frame_rate": 8
+          },
+          "muted": false
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "GetImageSizeAndCount",
+      "pos": [
+        1172.1591796875,
+        153.38194274902344
+      ],
+      "size": [
+        277.20001220703125,
+        86
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 39
+        }
+      ],
+      "outputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            73,
+            74
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "512 width",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "320 height",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "name": "14 count",
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GetImageSizeAndCount"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "FramerSampler",
+      "pos": [
+        784.1168212890625,
+        161.07684326171875
+      ],
+      "size": [
+        315,
+        358
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "FRAMERMODEL",
+          "link": 29
+        },
+        {
+          "name": "start_image",
+          "type": "IMAGE",
+          "link": 35
+        },
+        {
+          "name": "end_image",
+          "type": "IMAGE",
+          "link": 37
+        },
+        {
+          "name": "tracks",
+          "type": "PREDTRACKS",
+          "link": 72,
+          "shape": 7
+        },
+        {
+          "name": "num_frames",
+          "type": "INT",
+          "link": 76,
+          "widget": {
+            "name": "num_frames"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": [
+            39
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "FramerSampler"
+      },
+      "widgets_values": [
+        14,
+        20,
+        1,
+        3,
+        100,
+        7,
+        0.02,
+        1,
+        99283444596409,
+        "fixed",
+        true
+      ]
+    },
+    {
+      "id": 42,
+      "type": "PrimitiveNode",
+      "pos": [
+        185.58497619628906,
+        29.97690773010254
+      ],
+      "size": [
+        248.45596313476562,
+        82
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            76,
+            77
+          ],
+          "slot_index": 0,
+          "widget": {
+            "name": "num_frames"
+          }
+        }
+      ],
+      "title": "num_frames",
+      "properties": {
+        "Run widget replace on values": false
+      },
+      "widgets_values": [
+        14,
+        "fixed"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "LoadImage",
+      "pos": [
+        -290.5004577636719,
+        478.1551818847656
+      ],
+      "size": [
+        353.1381530761719,
+        314.0000305175781
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            34
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "title": "Load Image: Start",
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "pasted/image (499).png",
+        "image"
+      ]
+    },
+    {
+      "id": 40,
+      "type": "Note",
+      "pos": [
+        210.95045471191406,
+        1086.1927490234375
+      ],
+      "size": [
+        307.8472595214844,
+        72.38926696777344
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "For automated point matching and tracking, can be disconnected from the sampler if the detection results are undesirable"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 44,
+      "type": "Note",
+      "pos": [
+        -784.1866455078125,
+        880.9674682617188
+      ],
+      "size": [
+        478.0530090332031,
+        58
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "https://aim-uofa.github.io/Framer/001_results_drag/input_frames/dog_1.png"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 43,
+      "type": "Note",
+      "pos": [
+        -782.0650024414062,
+        478.4356994628906
+      ],
+      "size": [
+        478.0530090332031,
+        58
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "https://aim-uofa.github.io/Framer/001_results_drag/input_frames/dog_0.png"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    }
+  ],
+  "links": [
+    [
+      29,
+      3,
+      0,
+      15,
+      0,
+      "FRAMERMODEL"
+    ],
+    [
+      34,
+      6,
+      0,
+      16,
+      0,
+      "IMAGE"
+    ],
+    [
+      35,
+      16,
+      0,
+      15,
+      1,
+      "IMAGE"
+    ],
+    [
+      36,
+      5,
+      0,
+      17,
+      0,
+      "IMAGE"
+    ],
+    [
+      37,
+      17,
+      0,
+      15,
+      2,
+      "IMAGE"
+    ],
+    [
+      38,
+      16,
+      0,
+      17,
+      1,
+      "IMAGE"
+    ],
+    [
+      39,
+      15,
+      0,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      41,
+      16,
+      0,
+      21,
+      0,
+      "IMAGE"
+    ],
+    [
+      42,
+      17,
+      0,
+      21,
+      1,
+      "IMAGE"
+    ],
+    [
+      45,
+      21,
+      1,
+      24,
+      0,
+      "IMAGE"
+    ],
+    [
+      68,
+      21,
+      2,
+      37,
+      0,
+      "IMAGE"
+    ],
+    [
+      69,
+      37,
+      0,
+      35,
+      2,
+      "MASK"
+    ],
+    [
+      70,
+      21,
+      2,
+      35,
+      1,
+      "IMAGE"
+    ],
+    [
+      72,
+      21,
+      0,
+      15,
+      3,
+      "PREDTRACKS"
+    ],
+    [
+      73,
+      18,
+      0,
+      35,
+      0,
+      "IMAGE"
+    ],
+    [
+      74,
+      18,
+      0,
+      11,
+      0,
+      "IMAGE"
+    ],
+    [
+      75,
+      35,
+      0,
+      41,
+      0,
+      "IMAGE"
+    ],
+    [
+      76,
+      42,
+      0,
+      15,
+      4,
+      "INT"
+    ],
+    [
+      77,
+      42,
+      0,
+      21,
+      2,
+      "INT"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.7627768444385583,
+      "offset": [
+        925.4779545701281,
+        -83.0647656316583
+      ]
+    }
+  },
+  "version": 0.4
+}

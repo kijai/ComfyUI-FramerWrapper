@@ -4,7 +4,7 @@ Framer models loaded from `ComfyUI/models/diffusion_models`
 
 https://huggingface.co/Kijai/Framer_comfy
 
-The VAE and image encoder from diffusers SVD-XT 1.1 is currently also required and autodownloaded to:
+The VAE and image encoder from diffusers SVD-XT 1.1 are currently also required and autodownloaded to:
 
 ```
 ComfyUI/models/diffusers/stable-video-diffusion-img2vid-xt-1-1

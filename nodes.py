@@ -117,8 +117,9 @@ class FramerModelLoader:
             torch_dtype=torch.float16,
             variant="fp16",
             local_files_only=True,
+            offload_device=offload_device,
         )
-        pipe.to(device)            
+        pipe.to(device)
 
         compile
         if compile_args is not None:
@@ -175,7 +176,7 @@ class FramerSampler:
                 "model": ("FRAMERMODEL",),
                 "start_image": ("IMAGE", ),
                 "end_image": ("IMAGE", ),
-                "num_frames": ("INT", {"default": 14, "min": 1, "max": 1024, "step": 4}),
+                "num_frames": ("INT", {"default": 14, "min": 1, "max": 1024, "step": 1}),
                 "steps": ("INT", {"default": 20, "min": 1}),
                 "min_guidance_scale": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 30.0, "step": 0.01}),
                 "max_guidance_scale": ("FLOAT", {"default": 3.0, "min": 0.0, "max": 30.0, "step": 0.01}),
@@ -290,10 +291,10 @@ class FramerSift:
         device = mm.get_torch_device()
         from .models_diffusers.sift_match import interpolate_trajectory as sift_interpolate_trajectory
         from .models_diffusers.sift_match import sift_match
+        import cv2
+        import numpy as np
         
         B, H, W, C = start_image.shape
-        #start_image = start_image.permute(0, 3, 1, 2).to(device)
-        #end_image = end_image.permute(0, 3, 1, 2).to(device)
 
         # (f, topk, 2), f=2 (before interpolation)
         pred_tracks, vis_image = sift_match(
@@ -316,6 +317,9 @@ class FramerSift:
         log.info(f"pred_tracks: {pred_tracks.shape}")
 
         vis_frames = get_vis_image(target_size=(H, W), points=pred_tracks.permute(1, 0, 2), num_frames=num_frames, side=20)
+
+        #vis_frames = [cv2.applyColorMap(img, cv2.COLORMAP_JET) for img in vis_frames]
+        #vis_frames = [cv2.cvtColor(img, cv2.COLOR_BGR2RGB) for img in vis_frames]
         
         vis_tensors = []
         for img in vis_frames:
@@ -378,141 +382,6 @@ class CoordsToFramerTracking:
         }
 
         return (pred_tracks, vis_frames_out,)
-    
-#region VideoDecode
-class HyVideoDecode:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {"required": {
-                    "vae": ("VAE",),
-                    "samples": ("LATENT",),
-                    "enable_vae_tiling": ("BOOLEAN", {"default": True, "tooltip": "Drastically reduces memory use but may introduce seams"}),
-                    "temporal_tiling_sample_size": ("INT", {"default": 64, "min": 4, "max": 256, "tooltip": "Smaller values use less VRAM, model default is 64, any other value will cause stutter"}),
-                    "spatial_tile_sample_min_size": ("INT", {"default": 256, "min": 32, "max": 2048, "step": 32, "tooltip": "Spatial tile minimum size in pixels, smaller values use less VRAM, may introduce more seams"}),
-                    "auto_tile_size": ("BOOLEAN", {"default": True, "tooltip": "Automatically set tile size based on defaults, above settings are ignored"}),
-                    },
-                }
-
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("images",)
-    FUNCTION = "decode"
-    CATEGORY = "FramerWrapper"
-
-    def decode(self, vae, samples, enable_vae_tiling, temporal_tiling_sample_size, spatial_tile_sample_min_size, auto_tile_size):
-        device = mm.get_torch_device()
-        offload_device = mm.unet_offload_device()
-        mm.soft_empty_cache()
-        latents = samples["samples"]
-        generator = torch.Generator(device=torch.device("cpu"))#.manual_seed(seed)
-        vae.to(device)
-        if not auto_tile_size:
-            vae.tile_latent_min_tsize = temporal_tiling_sample_size // 4
-            vae.tile_sample_min_size = spatial_tile_sample_min_size
-            vae.tile_latent_min_size = spatial_tile_sample_min_size // 8
-            if temporal_tiling_sample_size != 64:
-                vae.t_tile_overlap_factor = 0.0
-            else:
-                vae.t_tile_overlap_factor = 0.25
-        else:
-            #defaults
-            vae.tile_latent_min_tsize = 16
-            vae.tile_sample_min_size = 256
-            vae.tile_latent_min_size = 32
-
-
-        expand_temporal_dim = False
-        if len(latents.shape) == 4:
-            if isinstance(vae, AutoencoderKLCausal3D):
-                latents = latents.unsqueeze(2)
-                expand_temporal_dim = True
-        elif len(latents.shape) == 5:
-            pass
-        else:
-            raise ValueError(
-                f"Only support latents with shape (b, c, h, w) or (b, c, f, h, w), but got {latents.shape}."
-            )
-
-        latents = latents / vae.config.scaling_factor
-        latents = latents.to(vae.dtype).to(device)
-
-        if enable_vae_tiling:
-            vae.enable_tiling()
-            video = vae.decode(
-                latents, return_dict=False, generator=generator
-            )[0]
-        else:
-            video = vae.decode(
-                latents, return_dict=False, generator=generator
-            )[0]
-
-        if expand_temporal_dim or video.shape[2] == 1:
-            video = video.squeeze(2)
-
-        vae.to(offload_device)
-        mm.soft_empty_cache()
-
-        if len(video.shape) == 5:
-            video_processor = VideoProcessor(vae_scale_factor=8)
-            video_processor.config.do_resize = False
-
-            video = video_processor.postprocess_video(video=video, output_type="pt")
-            out = video[0].permute(0, 2, 3, 1).cpu().float()
-        else:
-            out = (video / 2 + 0.5).clamp(0, 1)
-            out = out.permute(0, 2, 3, 1).cpu().float()
-
-        return (out,)
-
-#region VideoEncode
-class HyVideoEncode:
-    @classmethod
-    def INPUT_TYPES(s):
-        return {"required": {
-                    "vae": ("VAE",),
-                    "image": ("IMAGE",),
-                    "enable_vae_tiling": ("BOOLEAN", {"default": True, "tooltip": "Drastically reduces memory use but may introduce seams"}),
-                    "temporal_tiling_sample_size": ("INT", {"default": 64, "min": 4, "max": 256, "tooltip": "Smaller values use less VRAM, model default is 64, any other value will cause stutter"}),
-                    "spatial_tile_sample_min_size": ("INT", {"default": 256, "min": 32, "max": 2048, "step": 32, "tooltip": "Spatial tile minimum size in pixels, smaller values use less VRAM, may introduce more seams"}),
-                    "auto_tile_size": ("BOOLEAN", {"default": True, "tooltip": "Automatically set tile size based on defaults, above settings are ignored"}),
-                    },
-                }
-
-    RETURN_TYPES = ("LATENT",)
-    RETURN_NAMES = ("samples",)
-    FUNCTION = "encode"
-    CATEGORY = "FramerWrapper"
-
-    def encode(self, vae, image, enable_vae_tiling, temporal_tiling_sample_size, auto_tile_size, spatial_tile_sample_min_size):
-        device = mm.get_torch_device()
-        offload_device = mm.unet_offload_device()
-
-        generator = torch.Generator(device=torch.device("cpu"))#.manual_seed(seed)
-        vae.to(device)
-        if not auto_tile_size:
-            vae.tile_latent_min_tsize = temporal_tiling_sample_size // 4
-            vae.tile_sample_min_size = spatial_tile_sample_min_size
-            vae.tile_latent_min_size = spatial_tile_sample_min_size // 8
-            if temporal_tiling_sample_size != 64:
-                vae.t_tile_overlap_factor = 0.0
-            else:
-                vae.t_tile_overlap_factor = 0.25
-        else:
-            #defaults
-            vae.tile_latent_min_tsize = 16
-            vae.tile_sample_min_size = 256
-            vae.tile_latent_min_size = 32
-
-        image = (image * 2.0 - 1.0).to(vae.dtype).to(device).unsqueeze(0).permute(0, 4, 1, 2, 3) # B, C, T, H, W
-        if enable_vae_tiling:
-            vae.enable_tiling()
-        latents = vae.encode(image).latent_dist.sample(generator)
-        latents = latents * vae.config.scaling_factor
-        vae.to(offload_device)
-        print("encoded latents shape",latents.shape)
-
-
-        return ({"samples": latents},)
-
 
 NODE_CLASS_MAPPINGS = {
     "FramerModelLoader": FramerModelLoader,
