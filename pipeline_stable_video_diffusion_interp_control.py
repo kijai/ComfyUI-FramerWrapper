@@ -112,6 +112,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         feature_extractor: CLIPImageProcessor,
         controlnet: Optional[ControlNetSVDModel] = None,
         pose_encoder: Optional[torch.nn.Module] = None,
+        main_device: torch.device = torch.device("cuda"),
         offload_device: torch.device = torch.device("cpu"),
     ):
         super().__init__()
@@ -127,6 +128,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         )
         self.vae_scale_factor = 2 ** (len(self.vae.config.block_out_channels) - 1)
         self.image_processor = VaeImageProcessor(vae_scale_factor=self.vae_scale_factor)
+        self.main_device = main_device
         self.offload_device = offload_device
 
     def _encode_image(self, image, device, num_videos_per_prompt, do_classifier_free_guidance):
@@ -179,7 +181,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
         do_classifier_free_guidance,
     ):
         image = image.to(device=device)
-        self.vae.to(device=device)
+        self.vae.to(self.main_device)
         image_latents = self.vae.encode(image).latent_dist.mode()
         self.vae.to(self.offload_device)
 
@@ -448,7 +450,7 @@ class StableVideoDiffusionInterpControlPipeline(DiffusionPipeline):
             batch_size = len(image)
         else:
             batch_size = image.shape[0]
-        device = self._execution_device
+        device = self.main_device
         # here `guidance_scale` is defined analog to the guidance weight `w` of equation (2)
         # of the Imagen paper: https://arxiv.org/pdf/2205.11487.pdf . `guidance_scale = 1`
         # corresponds to doing no classifier free guidance.

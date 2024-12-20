@@ -117,6 +117,7 @@ class FramerModelLoader:
             torch_dtype=torch.float16,
             variant="fp16",
             local_files_only=True,
+            main_device=device,
             offload_device=offload_device,
         )
         pipe.to(device)
@@ -202,6 +203,7 @@ class FramerSampler:
         device = mm.get_torch_device()
         offload_device = mm.unet_offload_device()
         unet = model.unet
+        controlnet = model.controlnet
 
         B, H, W, C = start_image.shape
         start_image = start_image.permute(0, 3, 1, 2).to(device)
@@ -212,9 +214,9 @@ class FramerSampler:
         anchor_points_flag = tracks.get("anchor_points_flag") if tracks is not None else None
         
         if tracks == None:
-            model.controlnet.to(offload_device)
+            controlnet.to(offload_device)
         else:
-            model.controlnet.to(device)
+            controlnet.to(device)
 
         mm.soft_empty_cache()
         gc.collect()
@@ -223,8 +225,9 @@ class FramerSampler:
             torch.cuda.reset_peak_memory_stats(device)
         except:
             pass
-
+       
         unet.to(device)
+        log.info(f"Memory before: {torch.cuda.memory_summary(device=device)}")
         video_frames = model(
             start_image,
             end_image,
@@ -253,13 +256,10 @@ class FramerSampler:
         ).frames[0]
 
         print_memory(device)
-        try:
-            torch.cuda.reset_peak_memory_stats(device)
-        except:
-            pass
 
         if force_offload:
             unet.to(offload_device)
+            controlnet.to(offload_device)
             mm.soft_empty_cache()
             gc.collect()
         out = video_frames.permute(0, 2, 3, 1).cpu().float()
