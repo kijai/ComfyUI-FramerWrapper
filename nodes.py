@@ -227,7 +227,7 @@ class FramerSampler:
             pass
        
         unet.to(device)
-        log.info(f"Memory before: {torch.cuda.memory_summary(device=device)}")
+       
         video_frames = model(
             start_image,
             end_image,
